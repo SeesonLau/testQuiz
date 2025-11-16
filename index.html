@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HCIP Cloud Architect Interactive Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .correct-answer {
+            background-color: #a7f3d0 !important; /* Tailwind green-200 */
+        }
+        .incorrect-selection {
+            background-color: #fecaca !important; /* Tailwind red-200 */
+            border-color: #ef4444 !important; /* Tailwind red-500 */
+        }
+        .correct-indicator {
+            font-weight: bold;
+            color: #10b981; /* Tailwind emerald-500 */
+            margin-right: 0.5rem;
+        }
+        /* Hide content sections by default, controlled by JS/tabs */
+        .tab-content-section {
+            display: none;
+        }
+    </style>
+    <script>
+        const quizData = {
+            "tf": [
+                { q: "OpenStack is an open-source cloud operating system that provides infrastructure for VMs, bare metal, and containers.", a: true, hint: "OpenStack Overview" },
+                { q: "Horizon is the OpenStack Identity service that provides authentication.", a: false, hint: "Horizon is the Dashboard, Keystone is Identity." },
+                { q: "The Neutron service focuses on managing virtual network components and delivering Networking-as-a-Service (NaaS).", a: true, hint: "Neutron Overview" },
+                { q: "Cinder depends only on the Keystone authentication service.", a: true, hint: "Component Interaction" },
+                { q: "VM modifications do not affect the original image from which the VM instance was launched.", a: true, hint: "Images, Instances, and Flavors" },
+                { q: "The default restart policy for a Kubernetes container is OnFailure.", a: false, hint: "The default is Always." },
+                { q: "A ConfigMap is the recommended way to store sensitive information like passwords in Kubernetes.", a: false, hint: "Secrets are recommended for sensitive data." },
+                { q: "The smallest deployable unit in Kubernetes is a Container.", a: false, hint: "The smallest unit is a Pod." },
+                { q: "In the MapReduce process, the Shuffle phase is responsible for transferring intermediate data between Map and Reduce.", a: true, hint: "MapReduce Process" },
+                { q: "HBase is a distributed NoSQL database suitable for real-time read/write of massive data volumes.", a: true, hint: "HBase Introduction" },
+                { q: "OLTP systems focus on complex queries and long-term historical data analysis.", a: false, hint: "This is OLAP." },
+                { q: "A primary feature of big data is Volume, referring to the vast amount of data.", a: true, hint: "Big Data 4 V's" },
+                { q: "Huawei Cloud Stack is designed to use FusionSphere as its cloud operating system.", a: true, hint: "Huawei Cloud Stack Resource Pools" },
+                { q: "In Huawei Cloud Stack, the DMZ_Service network plane is used for the cloud platform's public service and console access.", a: true, hint: "Network Planes" },
+                { q: "Containers are generally considered to be completely isolated, leading to higher security than VMs.", a: false, hint: "Containers have isolation disadvantages compared to VMs." },
+                { q: "The FROM instruction in a Containerfile is optional.", a: false, hint: "Containerfile Base Images" },
+                { q: "A Kubernetes Deployment supports an update policy called Recreate, which deletes all old Pods before creating new ones.", a: true, hint: "Deployment Update Policies" },
+                { q: "A Service of type NodePort exposes the service only via an internal ClusterIP.", a: false, hint: "NodePort exposes externally via Node IP:Port." },
+                { q: "Relational databases are poorly suited for high-concurrency OLTP scenarios compared to NoSQL databases.", a: false, hint: "RDBMS (especially NewSQL) is used for OLTP." },
+                { q: "The Shared-Nothing architecture is typically associated with the best scalability in databases.", a: true, hint: "Sharding Architecture" },
+                { q: "VXLAN uses a 16-bit VNI field, supporting up to 65,536 segments.", a: false, hint: "VXLAN uses a 24-bit VNI, supporting 16 million segments." },
+                { q: "The Nova service is responsible for managing the physical hosts that VMs run on.", a: false, hint: "Nova's Responsibilities" },
+                { q: "The OpenStack Keystone service provides identity authentication but does not handle distributed multi-tenant authorization.", a: false, hint: "Keystone Functions" },
+                { q: "A VDC (Virtual Data Center) in Huawei Cloud Stack is a logical organization unit that may include resources from different regions.", a: true, hint: "VDC Planning" },
+                { q: "The core of Flume is to collect data from a source and send it directly to the sink without any caching.", a: false, hint: "Flume caches data in a Channel." },
+                { q: "Flink is primarily known as a batch processing framework, offering better throughput than Spark for large-scale ETL.", a: false, hint: "Flink is known for low-latency stream processing." },
+                { q: "Kubernetes StatefulSets are guaranteed to create, delete, and update Pods in a stable, ordered manner.", a: true, hint: "StatefulSet Features" },
+                { q: "A key feature of traditional single-node database architecture is its linear scalability.", a: false, hint: "Limited scalability, scaled up but not out." },
+                { q: "The Management Plane Geo-Redundant DR feature in Huawei Cloud Stack is only supported in the Global-Region decoupling scenario.", a: false, hint: "Supported in coupling, not decoupling." },
+                { q: "The smallest unit for user operations and managing a collection of resources in OpenStack Heat is called a Stack.", a: true, hint: "Heat Stack" },
+            ],
+            "saq": [
+                { q: "Which OpenStack component primarily acts as the web-based user interface (Dashboard)?", o: ["Nova", "Keystone", "Horizon", "Neutron"], a: "Horizon", hint: "OpenStack Core Services" },
+                { q: "Which OpenStack service provisions compute resources like virtual machines and bare metal servers?", o: ["Glance", "Cinder", "Heat", "Nova"], a: "Nova", hint: "OpenStack Core Services" },
+                { q: "What defines the number of virtual CPUs, RAM size, and ephemeral disk size for a VM instance in OpenStack?", o: ["Image", "Instance", "Flavor", "Volume"], a: "Flavor", hint: "OpenStack Concepts" },
+                { q: "Which authentication method is currently used by default in newly released OpenStack versions?", o: ["UUID", "PKI/PKIZ", "Local", "Fernet"], a: "Fernet", hint: "Keystone Authentication Methods" },
+                { q: "In Kubernetes, which component is responsible for selecting a node for newly created Pods?", o: ["kube-apiserver", "kubelet", "kube-scheduler", "kube-proxy"], a: "kube-scheduler", hint: "Kubernetes Master Node Components" },
+                { q: "Which open-source project is dedicated to cultivating and maintaining a vendor-neutral ecosystem to promote cloud-native technologies?", o: ["OCI", "CNCF", "Moby", "Istio"], a: "CNCF", hint: "Cloud Native Definition" },
+                { q: "What type of Kubernetes object is designed to provide Layer 7 traffic routing and proxy for Services?", o: ["Service", "Deployment", "Ingress", "ConfigMap"], a: "Ingress", hint: "Ingress Overview" },
+                { q: "Which is the most common use case for the Primary/Secondary database architecture?", o: ["High-consistency financial transactions (OLTP)", "Read-heavy applications where temporary inconsistency is acceptable", "Core systems requiring bidirectional data synchronization", "Data sharding for massive parallelism"], a: "Read-heavy applications where temporary inconsistency is acceptable", hint: "Grouping Architecture" },
+                { q: "Which database system is based on the Shared-Nothing architecture and is highly suitable for OLAP processing?", o: ["MySQL", "Oracle RAC", "GaussDB(DWS)", "Redis"], a: "GaussDB(DWS)", hint: "MPP Architecture" },
+                { q: "Which type of data is typically stored and organized in a standard format, represented as a two-dimensional table in relational databases?", o: ["Semi-structured data", "Unstructured data", "Structured data", "Object data"], a: "Structured data", hint: "Data Forms" },
+                { q: "What is the fundamental feature that allows data stored in a database to be accessible to many users instead of a specific user?", o: ["Permanent", "Organized", "Shared", "Unique"], a: "Shared", hint: "Database Characteristics" },
+                { q: "In the Hadoop ecosystem, which component is designed for processing and querying PB-level distributed data using a SQL-like language?", o: ["HDFS", "MapReduce", "Hive", "HBase"], a: "Hive", hint: "Hive Overview" },
+                { q: "Which component of the Huawei Cloud Stack management plane provides unified management for multiple regions and serves as the global unified authentication service?", o: ["ManageOne ServiceCenter", "Identity and Access Management (IAM)", "Operations Command Center (OCC)", "FusionSphere OpenStack"], a: "Identity and Access Management (IAM)", hint: "Global Zone Deployment" },
+                { q: "Which network plane in Huawei Cloud Stack carries traffic for tenant VXLAN and Network Element (NE) interconnection?", o: ["External_OM", "DMZ_Service", "Tunnel_Bearing", "Internal_Base"], a: "Tunnel_Bearing", hint: "Network Plane Descriptions" },
+                { q: "In a Kubernetes Pod definition, setting resource requests equal to resource limits grants the Pod which Quality of Service (QoS) class?", o: ["BestEffort", "Burstable", "Guaranteed", "Reserved"], a: "Guaranteed", hint: "Pod Quality of Service" },
+                { q: "Which of the following commands in a Containerfile is generally preferred because it avoids automatically decompressing files, requiring a separate RUN command for decompression?", o: ["COPY", "ADD", "RUN", "ENTRYPOINT"], a: "COPY", hint: "Containerfile Commands" },
+                { q: "What is the Kubernetes resource object used to store configuration information in key-value pairs, which is NOT intended for sensitive data?", o: ["Secret", "PersistentVolume", "ConfigMap", "ServiceAccount"], a: "ConfigMap", hint: "ConfigMaps Overview" },
+                { q: "Which big data tool is a distributed, highly reliable system primarily used for massive log collection, aggregation, and transmission?", o: ["Kafka", "Flume", "Spark", "Flink"], a: "Flume", hint: "Flume Overview" },
+                { q: "The Nova-Conductor component in OpenStack primarily provides database operations to decouple which other Nova component from direct database access?", o: ["Nova-API", "Nova-Scheduler", "Nova-Compute", "Keystone"], a: "Nova-Compute", hint: "Nova-Conductor" },
+                { q: "In the Glance service architecture, which part is responsible for handling the actual storage of VM images (e.g., to Swift, Ceph, or File System)?", o: ["Glance Domain Controller", "Glance Registry layer", "Glance DB", "Glance Store Drivers"], a: "Glance Store Drivers", hint: "Glance Architecture" },
+                { q: "What is the name of the new SQL-based relational database system that aims to provide the scalability of NoSQL while supporting full ACID properties?", o: ["NoSQL", "OLTP", "OLAP", "NewSQL"], a: "NewSQL", hint: "NewSQL Introduction" },
+                { q: "Which database architecture is characterized by having multiple servers that share the same data storage, such as Oracle RAC?", o: ["Primary/Secondary", "Multi-primary (Active-Active)", "Sharding", "Multi-active Shared-Disk"], a: "Multi-active Shared-Disk", hint: "Database Architectures" },
+                { q: "The OpenStack design principle of Scalability emphasizes the use of which architectural characteristic for core components to prevent single points of failure?", o: ["Open Source", "Tailorable Architecture", "Stateless Architecture", "Decentralized Architecture"], a: "Decentralized Architecture", hint: "OpenStack Design Principles" },
+                { q: "Which Huawei Cloud Stack service is an enterprise-class hosted Kubernetes service, central to their cloud native offerings?", o: ["ModelArts", "FusionSphere OpenStack", "Cloud Container Engine (CCE)", "DataArts Studio"], a: "Cloud Container Engine (CCE)", hint: "CCE Overview" },
+                { q: "The Application Performance Management (APM) service primarily helps O&M personnel in CCE/Cloud Native environments to quickly identify what?", o: ["Security vulnerabilities", "Application performance bottlenecks and fault root causes", "Resource over-utilization", "Network latency issues"], a: "Application performance bottlenecks and fault root causes", hint: "APM Overview" },
+                { q: "In GaussDB(DWS), which logical component is responsible for handling all system entries, breaking down tasks, and scheduling them for parallel processing across Data Nodes?", o: ["CM (Cluster Manager)", "GTM (Global Transaction Manager)", "CN (Coordinator Node)", "DN (Data Node)"], a: "CN (Coordinator Node)", hint: "GaussDB(DWS) Logical Architecture" },
+                { q: "The development of database systems is primarily driven by the evolution of which core concept?", o: ["SQL language syntax", "Server hardware", "Data models", "Data processing latency"], a: "Data models", hint: "Database Development Features" },
+                { q: "What is the maximum access latency (in ms) recommended between two physical Data Centers if they are planned to belong to the same Huawei Cloud Stack Region?", o: ["100 ms", "50 ms", "2 ms", "10 ms"], a: "2 ms", hint: "Region Deployment Principles" },
+                { q: "Which component in the Hadoop Distributed File System (HDFS) is responsible for storing and generating file system metadata?", o: ["DataNode", "Client", "NameNode", "ResourceManager"], a: "NameNode", hint: "HDFS Architecture" },
+                { q: "The Nova-Scheduler in OpenStack uses a two-step process to assign a VM instance to a host. What are those two steps in order?", o: ["Weighting, Filtering", "Filtering, Weighting", "Provisioning, Allocation", "Validation, Quota Check"], a: "Filtering, Weighting", hint: "Nova-Scheduler" },
+            ],
+            "maq": [
+                { q: "Which core components belong to the OpenStack shared services layer? (Select all that apply)", o: ["Nova", "Keystone", "Glance", "Cinder", "Heat", "Placement", "Barbican"], a: ["Keystone", "Glance", "Placement", "Barbican"], hint: "OpenStack Shared Services" },
+                { q: "Which types of resources does OpenStack manage for cloud infrastructure? (Select all that apply)", o: ["Virtual Machines (VMs)", "Bare Metal", "Containers", "Network Function Virtualization (NFV)"], a: ["Virtual Machines (VMs)", "Bare Metal", "Containers"], hint: "OpenStack Overview" },
+                { q: "Which services rely on the OpenStack Keystone service for authentication? (Select all that apply)", o: ["Horizon", "Nova", "Glance", "Cinder", "Neutron", "Heat"], a: ["Horizon", "Nova", "Glance", "Cinder", "Neutron", "Heat"], hint: "Component Interactions" },
+                { q: "Which are valid disk formats supported by the OpenStack Glance image service? (Select all that apply)", o: ["raw", "vhd", "qcow2", "iso", "zip"], a: ["raw", "vhd", "qcow2", "iso"], hint: "Glance Image Disk Formats" },
+                { q: "Which design principles are fundamental to OpenStack? (Select all that apply)", o: ["Openness", "Flexibility", "Scalability", "Monolithic architecture"], a: ["Openness", "Flexibility", "Scalability"], hint: "OpenStack Design Principles" },
+                { q: "Which are key disadvantages of containers compared to Virtual Machines (VMs)? (Select all that apply)", o: ["Security", "Isolation", "Faster startup speed", "Lower resource consumption", "Resource restriction"], a: ["Security", "Isolation", "Resource restriction"], hint: "Containers Disadvantages" },
+                { q: "Which commands are typically used to create and start a Kubernetes object using a YAML file? (Select all that apply)", o: ["kubectl create", "kubectl run", "kubectl apply", "kubectl build"], a: ["kubectl create", "kubectl apply"], hint: "Kubernetes Object Operations" },
+                { q: "Which fields are mandatory when defining the basic structure of any Kubernetes object using a YAML file? (Select all that apply)", o: ["apiVersion", "kind", "metadata", "spec", "status"], a: ["apiVersion", "kind", "metadata", "spec"], hint: "YAML File Basic Format" },
+                { q: "Which database architectures typically involve data being synchronously or asynchronously copied between nodes, where all nodes store the same complete dataset? (Select all that apply)", o: ["Sharding", "Primary/Standby", "Primary/Secondary", "Multi-primary", "Shared-Nothing"], a: ["Primary/Standby", "Primary/Secondary", "Multi-primary"], hint: "Database Architectures - Grouping" },
+                { q: "What are the key features of NoSQL databases? (Select all that apply)", o: ["Conformance to ACID properties", "Support for scale-out mode", "Data partitioning", "Acceptance of eventual consistency"], a: ["Support for scale-out mode", "Data partitioning", "Acceptance of eventual consistency"], hint: "NoSQL Technical Highlights" },
+                { q: "Which key 5 'V' features are commonly used to define Big Data? (Select all that apply)", o: ["Volume", "Velocity", "Variety", "Veracity", "Value"], a: ["Volume", "Velocity", "Variety", "Value", "Veracity"], hint: "Big Data 5 V's" },
+                { q: "Which data warehouse layer in Hive is typically used to store data after simple cleansing while retaining the original structure and granularity? (Select all that apply)", o: ["ODS", "DWD", "DWS", "ADS"], a: ["DWD"], hint: "Hive Data Warehouse" },
+                { q: "Which are valid container resource requirements that can be configured under resources in a Kubernetes Pod specification? (Select all that apply)", o: ["requests", "limits", "shares", "priority"], a: ["requests", "limits"], hint: "Container Resource Limits" },
+                { q: "In Kubernetes, which Volume types are typically defined under spec.volumes and are guaranteed to be shared storage among all containers in a Pod?", o: ["hostPath", "emptyDir", "PersistentVolumeClaim", "ConfigMap"], a: ["emptyDir", "PersistentVolumeClaim"], hint: "Pod Storage (Volumes)" },
+                { q: "Which components are typically deployed in the Master Node (Control Plane) of a Kubernetes cluster? (Select all that apply)", o: ["kube-apiserver", "kubelet", "etcd", "kube-scheduler", "Container runtime"], a: ["kube-apiserver", "etcd", "kube-scheduler"], hint: "Kubernetes Control Plane Components" },
+                { q: "The Huawei Cloud Stack architecture divides physical resources into which organizational units? (Select all that apply)", o: ["Region", "Availability Zone (AZ)", "Resource pool", "Physical DC"], a: ["Region", "Availability Zone (AZ)", "Resource pool"], hint: "Resource Partition Design Principles" },
+                { q: "Which of the following storage protocols/types are explicitly supported as EVS disk backends for ECS/BMS in Huawei Cloud Stack? (Select all that apply)", o: ["FC SAN", "IP SAN", "OceanStor Pacific (Huawei Distributed Block Storage)", "NoF SAN"], a: ["FC SAN", "IP SAN", "OceanStor Pacific (Huawei Distributed Block Storage)", "NoF SAN"], hint: "Storage Node Configuration" },
+                { q: "Which components or services are part of the core Huawei Cloud Stack Management Domain? (Select all that apply)", o: ["ManageOne ServiceCenter", "ManageOne OperationCenter", "ManageOne Operations Command Center (OCC)", "FusionSphere OpenStack"], a: ["ManageOne ServiceCenter", "ManageOne OperationCenter", "ManageOne Operations Command Center (OCC)"], hint: "Management Components" },
+                { q: "What is a key purpose of the Ingress Controller in a Kubernetes cluster? (Select all that apply)", o: ["To deploy new Pods for a Deployment", "To act as the entry point for external traffic", "To interpret Ingress resource objects", "To manage container images"], a: ["To act as the entry point for external traffic", "To interpret Ingress resource objects"], hint: "Ingress Components" },
+                { q: "Which command options for creating and starting a container using nerdctl are typically used to allocate an interactive terminal? (Select all that apply)", o: ["-i", "-t", "-d", "-p"], a: ["-i", "-t"], hint: "nerdctl Command Options" },
+                { q: "What benefits does using a database Connection Pool provide? (Select all that apply)", o: ["Improves data consistency", "Reduces costs associated with frequent connection setup/teardown", "Improves system performance", "Prevents SQL injection attacks"], a: ["Reduces costs associated with frequent connection setup/teardown", "Improves system performance"], hint: "Database Connection Pools" },
+                { q: "Which concepts in a database are generally considered a logical organization unit for data? (Select all that apply)", o: ["Tablespace", "Schema", "Session", "Connection"], a: ["Schema", "Session"], hint: "Database Concepts" },
+                { q: "Which are key advantages of the Primary/Secondary database architecture (Active-Passive replication)? (Select all that apply)", o: ["Improved resource utilization by dedicating secondary nodes to reads", "Easy, flexible scale-out of read capacity", "Zero data inconsistency", "Automatic primary failover without external monitoring"], a: ["Improved resource utilization by dedicating secondary nodes to reads", "Easy, flexible scale-out of read capacity"], hint: "Primary/Secondary Advantages" },
+                { q: "Which OpenStack components are part of the Compute service layer? (Select all that apply)", o: ["Nova (Virtual Machines)", "Zun (Containers)", "Swift (Object Storage)", "Cinder (Block Storage)"], a: ["Nova (Virtual Machines)", "Zun (Containers)"], hint: "OpenStack Architecture" },
+                { q: "Which are valid probes for conducting Pod Health Checks in Kubernetes? (Select all that apply)", o: ["Startup probe", "Liveness probe", "Readiness probe", "Sanity check"], a: ["Startup probe", "Liveness probe", "Readiness probe"], hint: "Pod Health Checks" },
+                { q: "Which of the following describe a View in a relational database? (Select all that apply)", o: ["It stores data permanently in a physical file.", "It is a virtual table or virtual object.", "It reflects data changes in the base table.", "It is a logical window into the base table's data."], a: ["It is a virtual table or virtual object.", "It reflects data changes in the base table.", "It is a logical window into the base table's data."], hint: "Views in Databases" },
+                { q: "The MapReduce framework is fundamentally used for which type of data processing? (Select all that apply)", o: ["Batch computing", "Real-time stream processing", "Graph computing", "Offline computing of large-scale data sets"], a: ["Batch computing", "Offline computing of large-scale data sets"], hint: "MapReduce Overview" },
+                { q: "Which technologies are used by a container engine to virtually isolate applications and implement lightweight virtualization? (Select all that apply)", o: ["Hypervisors", "Namespaces", "Cgroups", "Host OS kernel"], a: ["Namespaces", "Cgroups"], hint: "Container Virtualization" },
+                { q: "Which are supported deployment modes for Huawei Cloud Stack's relational database service, GaussDB? (Select all that apply)", o: ["Centralized", "Distributed", "Single-node", "Shared-Disk (Oracle RAC style)"], a: ["Centralized", "Distributed"], hint: "GaussDB Flexible Deployment" },
+                { q: "What are key functions of the DataArts Studio platform in Huawei Cloud Stack? (Select all that apply)", o: ["Data integration and development", "Data quality monitoring", "Data asset management", "Data security"], a: ["Data integration and development", "Data quality monitoring", "Data asset management", "Data security"], hint: "DataArts Studio Functions" },
+            ],
+        };
+
+        const questionOrder = ["tf", "saq", "maq"];
+        let currentTab = "tf";
+        let isAnswerMode = false;
+        
+        // Helper function to shuffle array
+        const shuffleArray = array => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        };
+
+        // --- Core Rendering Functions ---
+
+        const renderQuiz = () => {
+            const quizContainer = document.getElementById('quiz-content');
+            quizContainer.innerHTML = '';
+            
+            questionOrder.forEach(type => {
+                const section = document.createElement('div');
+                section.id = `${type}-section`;
+                section.className = `tab-content-section p-4 ${type === currentTab ? 'block' : 'hidden'}`;
+                section.setAttribute('data-quiz-type', type);
+
+                let title = '';
+                if (type === 'tf') title = 'True or False Questions';
+                if (type === 'saq') title = 'Single Answer Questions (Select One)';
+                if (type === 'maq') title = 'Multiple Answer Questions (Select All That Apply)';
+                
+                section.innerHTML = `<h2 class="text-2xl font-bold mb-4 text-gray-800">${title}</h2>`;
+
+                quizData[type].forEach((qData, qIndex) => {
+                    const qIdPrefix = `${type}-${qIndex}`;
+                    const qCard = document.createElement('div');
+                    qCard.className = 'mb-6 p-4 bg-white shadow-lg rounded-lg border border-gray-200';
+                    qCard.innerHTML = `<p class="text-lg font-semibold mb-3 text-gray-700">${qIndex + 1}. ${qData.q}</p>`;
+
+                    if (type === 'tf') {
+                        const options = [
+                            { text: 'True', value: 'true' },
+                            { text: 'False', value: 'false' }
+                        ];
+                        options.forEach(opt => {
+                            const label = document.createElement('label');
+                            label.className = 'flex items-center space-x-3 mb-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out';
+                            label.innerHTML = `
+                                <input type="radio" name="${qIdPrefix}" value="${opt.value}" 
+                                    class="h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500" 
+                                    onchange="updateScore()">
+                                <span>${opt.text}</span>
+                            `;
+                            qCard.appendChild(label);
+                        });
+                    } else if (type === 'saq') {
+                        shuffleArray(qData.o); // Shuffle options for Single Answer
+                        qData.o.forEach((opt, oIndex) => {
+                            const label = document.createElement('label');
+                            label.className = 'flex items-center space-x-3 mb-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out';
+                            label.innerHTML = `
+                                <input type="radio" name="${qIdPrefix}" value="${opt}" 
+                                    class="h-5 w-5 text-indigo-600 border-gray-300 focus:ring-indigo-500" 
+                                    onchange="updateScore()">
+                                <span>${opt}</span>
+                            `;
+                            qCard.appendChild(label);
+                        });
+                    } else if (type === 'maq') {
+                        shuffleArray(qData.o); // Shuffle options for Multiple Answer
+                        qData.o.forEach((opt, oIndex) => {
+                            const label = document.createElement('label');
+                            label.className = 'flex items-center space-x-3 mb-2 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition duration-150 ease-in-out';
+                            label.innerHTML = `
+                                <input type="checkbox" name="${qIdPrefix}" value="${opt}" 
+                                    class="h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" 
+                                    onchange="updateScore()">
+                                <span>${opt}</span>
+                            `;
+                            qCard.appendChild(label);
+                        });
+                    }
+                    section.appendChild(qCard);
+                });
+                quizContainer.appendChild(section);
+            });
+
+            if (isAnswerMode) {
+                showAnswers(true);
+            }
+            updateScore();
+        };
+
+        const switchTab = (tabId) => {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-content-section').forEach(section => {
+                section.classList.add('hidden');
+                section.classList.remove('block');
+            });
+            document.getElementById(`${tabId}-section`).classList.remove('hidden');
+            document.getElementById(`${tabId}-section`).classList.add('block');
+            
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('bg-indigo-600', 'text-white');
+                button.classList.add('text-indigo-600', 'bg-white', 'hover:bg-indigo-50');
+            });
+            document.getElementById(`tab-btn-${tabId}`).classList.add('bg-indigo-600', 'text-white');
+            document.getElementById(`tab-btn-${tabId}`).classList.remove('text-indigo-600', 'bg-white', 'hover:bg-indigo-50');
+            
+            updateScore();
+        };
+
+        // --- Scoring and Answer Logic ---
+
+        const calculateScore = () => {
+            let totalScore = 0;
+            let maxScore = 0;
+            let results = {};
+
+            questionOrder.forEach(type => {
+                let sectionScore = 0;
+                const questions = quizData[type];
+                maxScore += questions.length;
+                
+                questions.forEach((qData, qIndex) => {
+                    const qIdPrefix = `${type}-${qIndex}`;
+                    let isCorrect = false;
+
+                    if (type === 'tf' || type === 'saq') {
+                        const selected = document.querySelector(`input[name="${qIdPrefix}"]:checked`);
+                        if (selected && selected.value === qData.a.toString()) {
+                            isCorrect = true;
+                        }
+                    } else if (type === 'maq') {
+                        const selected = Array.from(document.querySelectorAll(`input[name="${qIdPrefix}"]:checked`)).map(i => i.value);
+                        // Check 1: All correct answers must be selected
+                        const allCorrectSelected = qData.a.every(ans => selected.includes(ans));
+                        // Check 2: No incorrect answers must be selected (i.e., selected count == correct count)
+                        const noIncorrectSelected = selected.length === qData.a.length;
+
+                        if (allCorrectSelected && noIncorrectSelected) {
+                            isCorrect = true;
+                        }
+                    }
+                    
+                    if (isCorrect) {
+                        sectionScore++;
+                        totalScore++;
+                    }
+                    results[qIdPrefix] = { isCorrect, userAnswer: document.querySelector(`input[name="${qIdPrefix}"]:checked`)?.value };
+                });
+                results[`${type}-score`] = sectionScore;
+            });
+            results.totalScore = totalScore;
+            results.maxScore = maxScore;
+            return results;
+        };
+        
+        const updateScore = () => {
+            const scores = calculateScore();
+            const totalDisplay = document.getElementById('total-score');
+            const tfDisplay = document.getElementById('tf-score-display');
+            const saqDisplay = document.getElementById('saq-score-display');
+            const maqDisplay = document.getElementById('maq-score-display');
+            
+            totalDisplay.textContent = `${scores.totalScore} / ${scores.maxScore}`;
+            tfDisplay.textContent = `${scores["tf-score"]} / ${quizData.tf.length}`;
+            saqDisplay.textContent = `${scores["saq-score"]} / ${quizData.saq.length}`;
+            maqDisplay.textContent = `${scores["maq-score"]} / ${quizData.maq.length}`;
+        };
+
+        const showAnswers = (force = false) => {
+            isAnswerMode = force ? true : !isAnswerMode;
+            const btn = document.getElementById('show-answers-btn');
+            
+            if (isAnswerMode) {
+                btn.textContent = "Hide Answers";
+                btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                btn.classList.add('bg-red-600', 'hover:bg-red-700');
+
+                document.querySelectorAll('.tab-content-section').forEach(section => {
+                    const type = section.getAttribute('data-quiz-type');
+                    quizData[type].forEach((qData, qIndex) => {
+                        const qIdPrefix = `${type}-${qIndex}`;
+                        const isMaq = type === 'maq';
+                        const correctAnswer = Array.isArray(qData.a) ? qData.a : [qData.a.toString()];
+                        const inputName = qIdPrefix;
+
+                        const questionCard = section.querySelector(`p.text-lg`).closest('div');
+                        if (questionCard.querySelector('.hint')) return;
+
+                        const inputs = Array.from(questionCard.querySelectorAll(`input[name="${inputName}"]`));
+                        
+                        // Clear previous highlights
+                        inputs.forEach(input => {
+                            input.closest('label').classList.remove('correct-answer', 'incorrect-selection');
+                            if (input.closest('label').querySelector('.correct-indicator')) {
+                                input.closest('label').querySelector('.correct-indicator').remove();
+                            }
+                        });
+
+                        // Highlight correct/incorrect selections
+                        inputs.forEach(input => {
+                            const label = input.closest('label');
+                            const isCorrectOption = correctAnswer.includes(input.value);
+                            const isSelected = input.checked;
+
+                            if (isCorrectOption) {
+                                label.classList.add('correct-answer');
+                                if (!isSelected) {
+                                    // Add indicator for unselected correct answer
+                                    const indicator = document.createElement('span');
+                                    indicator.className = 'correct-indicator';
+                                    indicator.textContent = '✅ (Correct)';
+                                    label.prepend(indicator);
+                                }
+                            } else if (isSelected && !isCorrectOption) {
+                                label.classList.add('incorrect-selection');
+                            }
+                        });
+                        
+                        // Add hint
+                        const hint = document.createElement('p');
+                        hint.className = 'hint mt-4 text-sm text-gray-500 italic border-t border-gray-200 pt-2';
+                        hint.textContent = `Hint: ${qData.hint}`;
+                        questionCard.appendChild(hint);
+                    });
+                });
+            } else {
+                btn.textContent = "Show All Answers";
+                btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                
+                document.querySelectorAll('.tab-content-section').forEach(section => {
+                    section.querySelectorAll('.hint').forEach(hint => hint.remove());
+                    section.querySelectorAll('.correct-answer').forEach(el => el.classList.remove('correct-answer'));
+                    section.querySelectorAll('.incorrect-selection').forEach(el => el.classList.remove('incorrect-selection'));
+                    section.querySelectorAll('.correct-indicator').forEach(el => el.remove());
+                });
+            }
+        };
+
+        // Initialize quiz on load
+        window.onload = () => {
+            renderQuiz();
+            switchTab(currentTab); // Ensure initial tab is styled and displayed
+        };
+    </script>
+</head>
+<body class="bg-gray-100 font-sans antialiased min-h-screen">
+
+    <div class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-6 bg-white p-6 rounded-xl shadow-xl">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">HCIP Cloud Architect Practice Quiz</h1>
+            <p class="text-gray-600">90 Questions on OpenStack, Huawei Cloud Stack, Containers/K8s, and Big Data/DB</p>
+        </header>
+
+        <div class="mb-6 bg-white p-4 rounded-xl shadow-lg border border-gray-200">
+            <div class="flex flex-wrap justify-between items-center mb-4 border-b pb-4">
+                <!-- Tab Buttons -->
+                <button id="tab-btn-tf" class="tab-button px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition duration-150 ease-in-out bg-indigo-600 text-white" onclick="switchTab('tf')">
+                    True or False <span class="text-xs ml-1">(30)</span>
+                </button>
+                <button id="tab-btn-saq" class="tab-button px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition duration-150 ease-in-out text-indigo-600 bg-white hover:bg-indigo-50" onclick="switchTab('saq')">
+                    Single Answer <span class="text-xs ml-1">(30)</span>
+                </button>
+                <button id="tab-btn-maq" class="tab-button px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition duration-150 ease-in-out text-indigo-600 bg-white hover:bg-indigo-50" onclick="switchTab('maq')">
+                    Multiple Answer <span class="text-xs ml-1">(30)</span>
+                </button>
+                
+                <!-- Score Display -->
+                <div class="mt-4 sm:mt-0 text-right">
+                    <p class="text-lg font-bold text-gray-800">Total Score: <span id="total-score" class="text-indigo-600">0 / 90</span></p>
+                </div>
+            </div>
+
+            <!-- Individual Section Scores -->
+            <div class="flex justify-around text-center text-sm text-gray-600">
+                <p>T/F: <span id="tf-score-display" class="font-semibold">0 / 30</span></p>
+                <p>SAQ: <span id="saq-score-display" class="font-semibold">0 / 30</span></p>
+                <p>MAQ: <span id="maq-score-display" class="font-semibold">0 / 30</span></p>
+            </div>
+        </div>
+        
+        <!-- Main Quiz Content Area -->
+        <div id="quiz-content">
+            <!-- Questions will be rendered here by JavaScript -->
+        </div>
+
+        <footer class="mt-8 mb-12 flex justify-center">
+            <button id="show-answers-btn" onclick="showAnswers()" 
+                class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition duration-300 ease-in-out">
+                Show All Answers
+            </button>
+        </footer>
+
+    </div>
+</body>
+</html>
